@@ -1,0 +1,23 @@
+name: 'Sparse Checkout'
+description: 'Perform a sparse checkout from the repository'
+inputs:
+  pattern: 'Patterns to checkout'
+    required: true
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - run: |
+        REPO="https://${GITHUB_ACTOR}:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git"
+        BRANCH="${GITHUB_REF/#refs\/heads\//}"
+        git clone --filter=blob:none --no-checkout --depth 1 --sparse $REPO .
+        # Note: --cone can also be used for entire directories. However it does not support excluding
+        # directories, so cannot be used here.
+        git sparse-checkout init
+        # Exclude directories with large files
+        git sparse-checkout set ${{ inputs.pattern }}
+        # Fetch and checkout the branch being tested
+        git fetch --no-tags --prune --progress --depth=1 origin +${GITHUB_SHA}:refs/remotes/origin/${BRANCH}
+        git checkout --progress --force -B $BRANCH refs/remotes/origin/$BRANCH
+      shell: bash

@@ -12,9 +12,13 @@ runs:
         REPO="https://${GITHUB_ACTOR}:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git"
         BRANCH="${GITHUB_REF/#refs\/heads\//}"
         git clone --filter=blob:none --no-checkout --depth 1 --sparse $REPO .
-        # TODO: support --cone
-        git sparse-checkout init
+
+        # TODO: support the option to use --cone
+        # Currently --no-cone is explicitly specified to allow arbitrary patterns.
+        # See https://git-scm.com/docs/git-sparse-checkout/2.37.0#_internalsnon_cone_problems
+        git sparse-checkout init --no-cone
         git sparse-checkout set ${{ inputs.pattern }}
+
         # Fetch and checkout the branch being tested
         git fetch --no-tags --prune --progress --depth=1 origin +${GITHUB_SHA}:refs/remotes/origin/${BRANCH}
         git checkout --progress --force -B $BRANCH refs/remotes/origin/$BRANCH

@@ -4,6 +4,9 @@ inputs:
   pattern:
     description: 'Patterns to checkout'
     required: true
+  lfs:
+    description: 'Whether to checkout LFS files (true/false)'
+    default: 'false'
 
 runs:
   using: 'composite'
@@ -11,6 +14,7 @@ runs:
     - run: |
         REPO="https://${GITHUB_ACTOR}:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git"
         BRANCH="${GITHUB_REF/#refs\/heads\//}"
+        GIT_LFS_SKIP_SMUDGE=${{ ! inputs.lfs }}
         git clone --filter=blob:none --no-checkout --depth 1 --sparse $REPO .
 
         # TODO: support the option to use --cone
